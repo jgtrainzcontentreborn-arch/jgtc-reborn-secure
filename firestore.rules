@@ -1,0 +1,91 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Admin UID mengikuti konfigurasi proyek yang sudah digunakan website.
+    // Untuk produksi jangka panjang, custom claims admin lebih baik daripada UID hardcoded.
+    function isAdmin() {
+      return request.auth != null
+        && request.auth.uid == 'KuaqVI0fN4Pkd3MyYZgf6Cb63GE2';
+    }
+
+    // Pesanan publik hanya boleh dibuat dengan field dan status awal yang ditentukan.
+    // Ini bukan pengganti rate-limiting / proteksi spam di backend.
+    function isValidOrder(data, orderId) {
+      return data.keys().hasAll([
+          'id', 'time', 'fullName', 'waNum', 'email',
+          'itemName', 'platform', 'nominalTransfer', 'status'
+        ])
+        && data.keys().hasOnly([
+          'id', 'time', 'fullName', 'waNum', 'email',
+          'itemName', 'platform', 'nominalTransfer', 'status'
+        ])
+        && data.id is string
+        && data.id == orderId
+        && data.id.size() >= 5
+        && data.id.size() <= 80
+        && data.time is string
+        && data.time.size() > 0
+        && data.time.size() <= 60
+        && data.fullName is string
+        && data.fullName.size() > 0
+        && data.fullName.size() <= 100
+        && data.waNum is string
+        && data.waNum.size() >= 8
+        && data.waNum.size() <= 30
+        && data.email is string
+        && data.email.size() >= 5
+        && data.email.size() <= 120
+        && data.itemName is string
+        && data.itemName.size() > 0
+        && data.itemName.size() <= 200
+        && data.platform is string
+        && data.platform.size() > 0
+        && data.platform.size() <= 100
+        && data.nominalTransfer is number
+        && data.nominalTransfer > 0
+        && data.status == 'Menunggu Verifikasi';
+    }
+
+    // Katalog publik; hanya admin dapat menambah, mengubah, atau menghapus.
+    match /routes/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /payware/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /scenarios/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /freeware/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+    match /tutorials/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Dokumen pengaturan yang dibutuhkan halaman publik boleh dibaca publik.
+    // Penulisan tetap khusus admin. Profil admin tidak dibuka kepada publik.
+    match /settings/{settingId} {
+      allow read: if settingId in ['payment', 'content', 'theme', 'form'] || isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // Pengunjung boleh membuat pesanan baru dengan status awal yang tervalidasi.
+    // Hanya admin yang dapat membaca, mengubah status, atau menghapus pesanan.
+    match /orders/{orderId} {
+      allow create: if isValidOrder(request.resource.data, orderId);
+      allow read, update, delete: if isAdmin();
+    }
+
+    // Tutup akses untuk koleksi/dokumen lain yang tidak didefinisikan di atas.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
