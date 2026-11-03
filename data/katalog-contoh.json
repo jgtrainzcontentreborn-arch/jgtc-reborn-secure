@@ -1,0 +1,18 @@
+[
+  {
+    "id": "contoh-rute-indonesia",
+    "title": "Nama Rute Indonesia",
+    "category": "Rute Indonesia",
+    "desc": "Tulis deskripsi rute, wilayah, dan catatan penting.",
+    "image": "assets/train-indonesia.svg",
+    "kuid": "",
+    "version": "TRS19 / TRS22",
+    "routeVersion": "1.0",
+    "requirements": "Tuliskan dependency yang diperlukan.",
+    "status": "Freeware",
+    "price": "",
+    "url": "https://contoh.example/tautan-resmi",
+    "date": "29/10/2026",
+    "isSample": false
+  }
+]

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 100" role="img" aria-labelledby="title desc">
+<title id="title">JGTC REBORN</title><desc id="desc">Logo JGTC REBORN dengan ikon kereta api berwarna merah dan biru.</desc>
+<defs><linearGradient id="blue" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e63946"/><stop offset="0.52" stop-color="#176bb5"/><stop offset="1" stop-color="#103f78"/></linearGradient></defs>
+<g transform="translate(3 10)"><path d="M5 53 23 28 57 10 78 10 92 23 70 23 52 31 34 47 78 47 95 55 51 55 32 66 9 66 29 53Z" fill="url(#blue)"/><path d="M15 72 48 61 85 61 72 70 41 73Z" fill="#d62839"/><path d="M32 43 53 27 72 27 61 34 48 44Z" fill="#fff"/><circle cx="31" cy="70" r="4" fill="#d9f5ff"/><circle cx="66" cy="70" r="4" fill="#d9f5ff"/></g>
+<text x="112" y="54" font-family="Arial, Helvetica, sans-serif" font-size="42" font-weight="900" font-style="italic" letter-spacing="-1.8" fill="#123e78">JGTC</text>
+<text x="112" y="80" font-family="Arial, Helvetica, sans-serif" font-size="22" font-weight="800" letter-spacing="5.3" fill="#d62839">REBORN</text>
+<path d="M112 88H330" stroke="#176bb5" stroke-width="2" stroke-linecap="round"/>
+</svg>
