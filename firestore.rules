@@ -1,0 +1,69 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return signedIn()
+        && request.auth.uid == 'wkPmVZUdYFdO0P3McTiimxtHbg03';
+    }
+
+    function isOwner(userId) {
+      return signedIn() && request.auth.uid == userId;
+    }
+
+    // Katalog publik tetap dapat dibaca semua pengunjung.
+    // Operasi tulis hanya untuk admin utama yang UID-nya sudah digunakan proyek.
+    match /addons/{addonId} {
+      allow read: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    // Profil pelanggan: setiap pelanggan hanya dapat membaca dan mengubah
+    // profilnya sendiri. Role tidak boleh dinaikkan menjadi admin dari browser.
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+
+      allow create: if isOwner(userId)
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.role == 'customer'
+        && request.resource.data.keys().hasOnly([
+          'uid', 'displayName', 'email', 'phone', 'photoURL',
+          'role', 'createdAt', 'updatedAt'
+        ])
+        && request.resource.data.createdAt == request.time;
+
+      allow update: if isAdmin() || (
+        isOwner(userId)
+        && request.resource.data.uid == resource.data.uid
+        && request.resource.data.role == resource.data.role
+        && request.resource.data.role == 'customer'
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+          'displayName', 'phone', 'photoURL', 'updatedAt'
+        ])
+      );
+
+      allow delete: if isAdmin();
+    }
+
+    // Transaksi dan pembayaran hanya dapat diubah melalui Cloud Functions (Admin SDK).
+    // Pelanggan hanya dapat membaca pesanan, pembayaran, dan kepemilikan miliknya.
+    match /orders/{orderId} { allow get, list: if signedIn() && (resource.data.userId == request.auth.uid || isAdmin()); allow create, update, delete: if false; }
+    match /payments/{paymentId} { allow get, list: if signedIn() && (resource.data.userId == request.auth.uid || isAdmin()); allow create, update, delete: if false; }
+    match /ownerships/{ownershipId} { allow get, list: if signedIn() && (resource.data.userId == request.auth.uid || isAdmin()); allow create, update, delete: if false; }
+    // Pilihan update rute hanya dibaca/ditulis melalui callable Cloud Functions.
+    // Admin SDK melewati rules; browser tidak dapat memanipulasi harga atau versi.
+    match /route_updates/{document=**} { allow read, write: if false; }
+    match /notifications/{notificationId} { allow get, list: if signedIn() && (resource.data.userId == request.auth.uid || isAdmin()); allow create, update, delete: if false; }
+    match /coupons/{document=**} { allow read, write: if false; }
+    match /settings/{document=**} { allow read, write: if false; }
+    match /admin_logs/{document=**} { allow read, write: if false; }
+
+    // Default-deny untuk koleksi lain yang belum dirancang.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}
